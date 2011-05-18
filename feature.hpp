@@ -33,6 +33,10 @@ class Feature {
    */
 
 protected:
+  
+  // Class 0 = String Not found
+  // Class 1 = String Found
+
   int m_counts[2][2];
   int m_totalPerClass[2];
   string m_toMatch;
@@ -50,13 +54,24 @@ public :
     m_totalPerClass[1] = 0;
   }
 
+
+
+
+#define FOUND_CLASS 1
+#define NOT_FOUND_CLASS 0
+
+
   int isFeaturePresent(string s) {
     /* YOUR CODE HERE
      *
      * Determine whether this feature occurs in the string.
      * Return 1 if the feature is present; 0 otherwise.
      */
-    return 0;  // stub, replace me!
+    
+    // Scan through the string to see if m_toMatch can be found in the string.
+    size_t searchResult = s.find(m_toMatch);
+    
+    return searchResult != string::npos;
   }
 
   void addTrainingExample(int featurePresence, int classNumber) {
@@ -68,6 +83,12 @@ public :
      * classNumber = the number of the class for this example (0 or 1)
      * featurePresence = 0 or 1 stating the presence or absence of this feature
      */
+    
+    // Record the correct class
+    m_counts[classNumber][featurePresence]++;
+    
+    // Update the total count
+    m_totalPerClass[classNumber]++;
   }
 
   double getProbOfFeatureGivenClass(int featurePresence, int classNumber) {
@@ -77,8 +98,13 @@ public :
      * Use your counts, but make sure to smooth it by adding 1 to avoid probabilities of
      * absolute zero or one.
      */
+    
+    // Find the total count, and class+feature count.
+    return m_counts[classNumber][featurePresence]/(1+m_totalPerClass[classNumber]);
+    
+    
     //.. you need to smooth it so there's never a 0 or 1 probability
-    return 0.0; // stub, replace me!
+    
   }
 };
 

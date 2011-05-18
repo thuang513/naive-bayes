@@ -66,6 +66,19 @@ public :
      * one for each letter of the alphabet.  So, you need to
      * create each feature and add it to m_features.
      */
+
+    for(char i = 'A'; i <= 'Z'; i++){
+      // For each character create a feature and add it to the vector
+      string character(1,i);
+      Feature* f = new Feature(character);
+      
+      m_features.push_back(*f);
+    }
+    
+
+    // DEBUG
+    //    printf("Size of vector = %d\n", (int)m_features.size());
+    
   }
 
   void addTrainingExample(string s, int classNumber) {
@@ -77,6 +90,21 @@ public :
      *     but you need to determine whether the feature is present for each feature.
      * (2) the counts that are used to compute the prior probability
      */
+    
+    // For every feature, check if the training string has the feature present.
+    // Then update accordingly
+    
+    for(int i = 0; i < m_features.size(); i++) {
+      Feature f = m_features[i];
+      
+      if(f.isFeaturePresent(s)){
+	f.addTrainingExample(1, classNumber);
+      }else{
+	f.addTrainingExample(0, classNumber);
+      }
+      
+    }
+    
 
   }
 
