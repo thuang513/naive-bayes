@@ -87,8 +87,21 @@ public :
     // Record the correct class
     m_counts[classNumber][featurePresence]++;
     
+    // DEBUG
+    fprintf(stderr, "Feature.addTrainingExample: FEATURE: %s | m_count[%d][%d] = %d\n", m_toMatch.c_str(),classNumber, featurePresence, m_counts[classNumber][featurePresence]);
+
+    
+    // DEBUG
+    fprintf(stderr, "Feature.addTrainingExample: BEFORE FEATURE: %s | m_totalPerClass[%d] = %d\n", m_toMatch.c_str(),classNumber, m_totalPerClass[classNumber]);
+
+
     // Update the total count
-    m_totalPerClass[classNumber]++;
+    this->m_totalPerClass[classNumber] += 1;
+
+    
+    // DEBUG
+    fprintf(stderr, "Feature.addTrainingExample: AFTER FEATURE: %s | m_totalPerClass[%d] = %d\n", m_toMatch.c_str(),classNumber, m_totalPerClass[classNumber]);
+
   }
 
   double getProbOfFeatureGivenClass(int featurePresence, int classNumber) {
@@ -100,8 +113,9 @@ public :
      */
     
     // Find the total count, and class+feature count.
-    return m_counts[classNumber][featurePresence]/(1+m_totalPerClass[classNumber]);
+    double result =  (double) m_counts[classNumber][featurePresence]/(1+m_totalPerClass[classNumber]);
     
+    return result;
     
     //.. you need to smooth it so there's never a 0 or 1 probability
     

@@ -29,28 +29,55 @@ class NaiveBayesClassifier {
 protected :
   vector<Feature> m_features;
   int m_classTotals[2];
-
+  
+  // This is P(Y)
   double getPriorProbability(int classNumber) {
-    /* YOUR CODE HERE
-     *
+    /*
      * Compute and return the prior probability that a string belongs to a class.
      * This is P(C=classNum).
      */
+    
 
-    return 0.0;  // stub, replace me!
+
+    int total = m_classTotals[0] + m_classTotals[1];
+    
+    if(total == 0) total = 1;
+    
+    double result = m_classTotals[classNumber]/total;  // stub, replace me!
+    return result;
   }
-
+  
+  // This is P(Data | Y)
   double getLikelihood(int classNumber, string s)
   {
-    /* YOUR CODE HERE
-     *
+    /*
      * Compute and return the likelihood of the class, given the features.
      * This is P(F1=f1 and F2=f2 and ... Fn=fn | C=classNumber)
      *   where f1, f2, ..., fn are 0 or 1 depending on the presence or absence
      *   of the feature in that string.
      */
+    
+    double result = 1.0;
+    
+    // Go through every feature, figure out its probability given the classification, reflect it in the result.
+    
+    for(unsigned int i = 0; i < m_features.size(); i++){
+      Feature f = m_features[i];
+      
+      // Check if the feature is present
+      int featurePresence = f.isFeaturePresent(s);
+      double featureProb = f.getProbOfFeatureGivenClass(featurePresence, classNumber);
+      
+      /* DEBUG
+      if(featureProb == 0.0)
+		fprintf(stderr, "getLikelihood: featureProb is zero for featurePresence = %d, class Y = %d\n", featurePresence, classNumber);
+      */
 
-    return 0.0;  // stub, replace me!
+      result *= featureProb;
+    }
+
+    // Return the result
+    return result;
   }
 
 public :
@@ -59,8 +86,7 @@ public :
     m_classTotals[0] = 0;  // initialize m_classTotals to 0;
     m_classTotals[1] = 0;
 
-    /* YOUR CODE HERE
-     *
+    /* 
      * Create the set of features that we'll use.
      * For part 1 of the assignment, there are 26 features:
      * one for each letter of the alphabet.  So, you need to
@@ -70,9 +96,9 @@ public :
     for(char i = 'A'; i <= 'Z'; i++){
       // For each character create a feature and add it to the vector
       string character(1,i);
-      Feature* f = new Feature(character);
+      Feature f(character);
       
-      m_features.push_back(*f);
+      m_features.push_back(f);
     }
     
 
@@ -82,8 +108,7 @@ public :
   }
 
   void addTrainingExample(string s, int classNumber) {
-    /* YOUR CODE HERE
-     *
+    /*
      * Given a string and its correct classification, update:
      * (1) the counts that are used to compute the likelihoods.
      *     Feature.addTrainingExample(featureVal, classNumber) should take care of this,
@@ -94,7 +119,7 @@ public :
     // For every feature, check if the training string has the feature present.
     // Then update accordingly
     
-    for(int i = 0; i < m_features.size(); i++) {
+    for(unsigned int i = 0; i < m_features.size(); i++) {
       Feature f = m_features[i];
       
       if(f.isFeaturePresent(s)){
@@ -105,20 +130,31 @@ public :
       
     }
     
+    m_classTotals[classNumber]++;
 
   }
 
   int classify(string s) {
-    /* YOUR CODE HERE
-     *
+    /* 
      * Compute and return the most probable class (0 or 1) that this string
      * belongs to, using the maximum a posteriori (MAP) decision rule.
      *
      * You can do this using calls to getPriorProbability and getLikelihood.
      * You do not need to call getPosteriorProbability.
      */
+    
+    
+    // Find out the chance that the class is 0
+    double class_0_chance = this->getPriorProbability(0) * this->getLikelihood(0, s);
+    
+    
+    // Find out the chance that the class is 1
+    double class_1_chance = this->getPriorProbability(1) * this->getLikelihood(1, s);
+    
+    if(class_0_chance > class_1_chance) 
+      return 0;
+    else return 1;
 
-    return 0.0;  // stub, replace me!
   }
 
   double getPosteriorProbability(int classNumber, string s)
@@ -137,8 +173,40 @@ public :
      * Note that this function is not necessary for a working classifier!
      * That is, you don't need to call getPosteriorProbability inside of classify.
      */
+    
 
-    return 0.0;  // stub, replace me!
+    // To get P(X) = P(X | Y = 0)P(Y = 0) + P(X | Y = 1) P( Y = 1)
+    double px_equal_0 = this->getLikelihood(0, s); 
+    double px_equal_1 = this->getLikelihood(1, s);
+
+    /* DEBUG
+    if(px_equal_0 == 0.0) 
+      fprintf(stderr, "X = 0 is ZERO!!!\n");
+
+    if(px_equal_1 == 0.0) 
+      fprintf(stderr, "X = 1 is ZERO!!!\n");
+    */
+
+
+    double px = (double)px_equal_0 + px_equal_1;
+
+    
+    
+    // Find out the chance that the class is 0
+    double class_chance = this->getPriorProbability(classNumber) *
+                                        this->getLikelihood(classNumber, s);
+    
+    
+    // Make sure don't have a divide by zero
+    if(px == 0.0)
+      {
+	fprintf(stderr, "X is ZERO!!!\n");
+	return 0.0;
+      }
+    else
+      return class_chance/px;
+    
+    
   }
 
 };
