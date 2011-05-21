@@ -13,6 +13,9 @@
 #include <cstring>
 
 using std::string;
+
+#define FEATURE_DEBUG 0
+
 /**
  * feature.hpp
  *
@@ -42,6 +45,10 @@ protected:
   string m_toMatch;
 
 public :
+  
+  string getFeatureMatch() { return m_toMatch; }
+
+
   Feature(string toMatch) : m_toMatch(toMatch) {
 
     // Initialize the counters to 0
@@ -85,14 +92,16 @@ public :
      */
     
     // Record the correct class
-    m_counts[classNumber][featurePresence]++;
+    m_counts[classNumber][featurePresence] += 1;
     
     // DEBUG
-    fprintf(stderr, "Feature.addTrainingExample: FEATURE: %s | m_count[%d][%d] = %d\n", m_toMatch.c_str(),classNumber, featurePresence, m_counts[classNumber][featurePresence]);
+    if(FEATURE_DEBUG)
+      fprintf(stderr, "Feature.addTrainingExample: FEATURE: %s | m_count[%d][%d] = %d\n", m_toMatch.c_str(),classNumber, featurePresence, m_counts[classNumber][featurePresence]);
 
     
     // DEBUG
-    fprintf(stderr, "Feature.addTrainingExample: BEFORE FEATURE: %s | m_totalPerClass[%d] = %d\n", m_toMatch.c_str(),classNumber, m_totalPerClass[classNumber]);
+    if(FEATURE_DEBUG)
+      fprintf(stderr, "Feature.addTrainingExample: BEFORE FEATURE: %s | m_totalPerClass[%d] = %d\n", m_toMatch.c_str(),classNumber, m_totalPerClass[classNumber]);
 
 
     // Update the total count
@@ -100,7 +109,8 @@ public :
 
     
     // DEBUG
-    fprintf(stderr, "Feature.addTrainingExample: AFTER FEATURE: %s | m_totalPerClass[%d] = %d\n", m_toMatch.c_str(),classNumber, m_totalPerClass[classNumber]);
+    if(FEATURE_DEBUG)
+      fprintf(stderr, "Feature.addTrainingExample: AFTER FEATURE: %s | m_totalPerClass[%d] = %d\n", m_toMatch.c_str(),classNumber, m_totalPerClass[classNumber]);
 
   }
 
@@ -113,7 +123,7 @@ public :
      */
     
     // Find the total count, and class+feature count.
-    double result =  (double) m_counts[classNumber][featurePresence]/(1+m_totalPerClass[classNumber]);
+    double result =  (double) (m_counts[classNumber][featurePresence] + 1)/( m_totalPerClass[classNumber]);
     
     return result;
     

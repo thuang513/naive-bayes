@@ -16,6 +16,9 @@
 #include "feature.hpp"
 #include <vector>
 
+
+#define CLASS_DEBUG 1 
+
 using std::vector;
 
 class NaiveBayesClassifier {
@@ -43,7 +46,7 @@ protected :
     
     if(total == 0) total = 1;
     
-    double result = m_classTotals[classNumber]/total;  // stub, replace me!
+    double result = (double)m_classTotals[classNumber]/total;  // stub, replace me!
     return result;
   }
   
@@ -62,11 +65,10 @@ protected :
     // Go through every feature, figure out its probability given the classification, reflect it in the result.
     
     for(unsigned int i = 0; i < m_features.size(); i++){
-      Feature f = m_features[i];
       
       // Check if the feature is present
-      int featurePresence = f.isFeaturePresent(s);
-      double featureProb = f.getProbOfFeatureGivenClass(featurePresence, classNumber);
+      int featurePresence = m_features[i].isFeaturePresent(s);
+      double featureProb = m_features[i].getProbOfFeatureGivenClass(featurePresence, classNumber);
       
       /* DEBUG
       if(featureProb == 0.0)
@@ -120,12 +122,17 @@ public :
     // Then update accordingly
     
     for(unsigned int i = 0; i < m_features.size(); i++) {
-      Feature f = m_features[i];
+      //      Feature f = m_features[i];
       
-      if(f.isFeaturePresent(s)){
-	f.addTrainingExample(1, classNumber);
+      
+      // DEBUG
+      //      if(CLASS_DEBUG)
+      // fprintf(stderr, "Feature: %s address %p\n", m_features[i].getFeatureMatch().c_str(), &m_features[i]);
+      
+      if(m_features[i].isFeaturePresent(s)){
+	m_features[i].addTrainingExample(1, classNumber);
       }else{
-	f.addTrainingExample(0, classNumber);
+	m_features[i].addTrainingExample(0, classNumber);
       }
       
     }
@@ -176,35 +183,50 @@ public :
     
 
     // To get P(X) = P(X | Y = 0)P(Y = 0) + P(X | Y = 1) P( Y = 1)
-    double px_equal_0 = this->getLikelihood(0, s); 
-    double px_equal_1 = this->getLikelihood(1, s);
+    double px_equal_0 = this->getLikelihood(0, s) * this->getPriorProbability(0); 
+    double px_equal_1 = this->getLikelihood(1, s) * this->getPriorProbability(1);
 
-    /* DEBUG
-    if(px_equal_0 == 0.0) 
-      fprintf(stderr, "X = 0 is ZERO!!!\n");
+    // DEBUG
+    // if(px_equal_0 == 0.0) 
+    //   fprintf(stderr, "naive.getPosteriorProb: For feature %s | classNumber = %d | X = 0 is ZERO!!!\n",s.c_str(), classNumber);
 
-    if(px_equal_1 == 0.0) 
-      fprintf(stderr, "X = 1 is ZERO!!!\n");
-    */
+    // if(px_equal_1 == 0.0) 
+    //   fprintf(stderr, "naive.getPosteriorProb: For feature %s | classNumber = %d | X = 1 is ZERO!!!\n", s.c_str(), classNumber);
+    
 
 
     double px = (double)px_equal_0 + px_equal_1;
-
+   
+    
     
     
     // Find out the chance that the class is 0
     double class_chance = this->getPriorProbability(classNumber) *
                                         this->getLikelihood(classNumber, s);
-    
+
+    if(CLASS_DEBUG && this->getPriorProbability(classNumber) == 0)
+      fprintf(stderr, "naive.getPosteriorProb:For feature %s, classNumber = %d -> Prior Prob is 0\n", s.c_str(), classNumber);
+
+    if(CLASS_DEBUG && this->getLikelihood(classNumber,s ) == 0)
+      fprintf(stderr, "naive.getPosteriorProb:For feature %s, classNumber = %d -> LIKELIHOOD is 0\n", s.c_str(), classNumber);
+
     
     // Make sure don't have a divide by zero
     if(px == 0.0)
       {
-	fprintf(stderr, "X is ZERO!!!\n");
+	if(CLASS_DEBUG)
+	  fprintf(stderr, "naive.getPosteriorProb: X is ZERO!!!\n");
 	return 0.0;
       }
-    else
-      return class_chance/px;
+    else{
+      double result = (double) (class_chance/px);
+
+      if(result == 0.0 && CLASS_DEBUG)
+	fprintf(stderr, "naive.getPosteriorProb:For feature %s, classNumber = %d -> is 0\n", s.c_str(), classNumber);
+      
+      return result;
+    }
+
     
     
   }

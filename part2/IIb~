@@ -1,0 +1,3 @@
+#!/bin/bash
+
+../textClassifier ../dat/cities/usCities100.txt ../dat/cities/russiaCities100.txt ../dat/cities/usCitiesNext50.txt ../dat/cities/russiaCitiesNext50.txt 
